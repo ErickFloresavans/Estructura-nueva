@@ -54,7 +54,6 @@ class ImageService:
             True si BLIP está disponible, False en caso contrario
         """
         return self.blip_available
-    
     def analyze_image(self, media_id: str) -> Optional[str]:
         """
         Analiza una imagen completa desde media_id hasta descripción.
@@ -68,35 +67,38 @@ class ImageService:
         if not self.blip_available:
             print("⚠️ BLIP no disponible para análisis de imagen")
             return None
-        
+
         try:
             # 1. Obtener URL del archivo
             media_url = self.whatsapp_service.get_media_url(media_id)
             if not media_url:
                 return None
-            
+
             # 2. Generar nombre de archivo
-            if custom_filename:
-                filename = custom_filename
-            else:
-                timestamp = int(time.time())
-                filename = f"img_{timestamp}.jpg"
-            
+            timestamp = int(time.time())
+            filename = f"img_{timestamp}.jpg"
+
             # 3. Ruta completa del archivo
             file_path = os.path.join(self.upload_dir, filename)
-            
+
             # 4. Descargar archivo
             success = self.whatsapp_service.download_media(media_url, file_path)
-            
-            if success:
-                print(f"✅ Imagen guardada: {file_path}")
-                return file_path
-            else:
+
+            if not success:
                 return None
-                
+
+            # 5. Procesar imagen
+            description = self._process_image_with_blip(file_path)
+
+            # 6. Limpiar si es necesario (opcional)
+            self._cleanup_file(file_path)
+
+            return description
+
         except Exception as e:
-            print(f"❌ Error descargando y guardando imagen: {e}")
+            print(f"❌ Error en analyze_image: {e}")
             return None
+
     
     def get_image_info(self, file_path: str) -> Dict[str, Any]:
         """
@@ -348,40 +350,38 @@ class ImageService:
                 "files": [],
                 "error": str(e)
             }
-
-            # 1. Obtener URL del archivo
-            media_url = self.whatsapp_service.get_media_url(media_id)
-            if not media_url:
-                print("❌ No se pudo obtener URL de la imagen")
-                return None
             
-            # 2. Descargar imagen
-            image_path = self._download_image(media_url)
-            if not image_path:
-                print("❌ No se pudo descargar la imagen")
-                return None
-            
-            # 3. Procesar imagen con BLIP
-            description = self._process_image_with_blip(image_path)
-            
-            # 4. Limpiar archivo temporal (opcional, inmediato)
-            self._cleanup_file(image_path)
-            
-            return description
-            
-        except Exception as e:
-            print(f"❌ Error analizando imagen: {e}")
-            return None
     
     def download_and_save_image(self, media_id: str, custom_filename: str = None) -> Optional[str]:
-        """
-        Descarga y guarda una imagen permanentemente.
-        
-        Args:
-            media_id: ID del archivo de media en WhatsApp
-            custom_filename: Nombre personalizado para el archivo
-            
-        Returns:
-            Ruta del archivo guardado o None si hay error
-        """
+        """Descarga y guarda una imagen permanentemente.
+
+            Args:
+                media_id: ID del archivo de media en WhatsApp
+                custom_filename: Nombre personalizado para el archivo
+
+            Returns:
+                Ruta del archivo guardado o None si hay error
+            """
         try:
+            # Obtener URL de descarga desde media_id
+            media_url = self.whatsapp_service.get_media_url(media_id)
+            if not media_url:
+                print("❌ No se pudo obtener la URL del media_id")
+                return None
+
+            # Definir nombre de archivo
+            filename = custom_filename or f"img_{int(time.time())}.jpg"
+            file_path = os.path.join(self.upload_dir, filename)
+
+            # Descargar la imagen
+            success = self.whatsapp_service.download_media(media_url, file_path)
+            if success:
+                print(f"✅ Imagen descargada y guardada en: {file_path}")
+                return file_path
+            else:
+                print("❌ Fallo al descargar la imagen desde WhatsApp")
+                return None
+
+        except Exception as e:
+            print(f"❌ Error en download_and_save_image: {e}")
+            return None

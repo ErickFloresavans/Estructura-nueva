@@ -18,7 +18,7 @@ from handlers.message_handler import MessageHandler
 from utils.validators import validate_whatsapp_message_format, validate_phone_number
 from utils.helpers import replace_start, mask_sensitive_data
 
-log_path = "/var/log/ollama/whatsapp_bot.log"
+log_path = "/home/ollama-bot/Pruebas/logs/whatsapp_bot.log"
 
 # Configuración de logging
 logging.basicConfig(
@@ -39,8 +39,8 @@ app.config['JSON_AS_ASCII'] = False  # Para caracteres especiales en JSON
 # Inicializar el handler principal
 message_handler = MessageHandler()
 
-print(" Flask cargado correctamente desde app.py")
-logger.info(" WhatsApp Bot iniciado correctamente")
+print("🔥 Flask cargado correctamente desde app.py")
+logger.info("🔥 WhatsApp Bot iniciado correctamente")
 
 
 @app.route("/")
@@ -51,7 +51,7 @@ def index():
     Returns:
         Mensaje de confirmación y código 200
     """
-    return " Flask + WSGI + Apache funcionando correctamente", 200
+    return "✅ Flask + WSGI + Apache funcionando correctamente", 200
 
 
 @app.route('/webhook/', methods=['GET'])
@@ -74,14 +74,14 @@ def verify_token():
         
         # Validar token
         if token == sett.token and challenge is not None:
-            logger.info(" Token válido, devolviendo challenge")
+            logger.info("✅ Token válido, devolviendo challenge")
             return challenge
         else:
-            logger.warning(" Token inválido o challenge faltante")
+            logger.warning("❌ Token inválido o challenge faltante")
             return 'Token incorrecto', 403
             
     except Exception as e:
-        logger.error(f" Error en verificación de token: {e}")
+        logger.error(f"❌ Error en verificación de token: {e}")
         return str(e), 403
 
 
@@ -94,12 +94,12 @@ def receive_messages():
     Returns:
         Respuesta JSON indicando el estado del procesamiento
     """
-    logger.info(" Webhook POST recibido")
+    logger.info("📩 Webhook POST recibido")
     
     try:
         # Validar que el contenido sea JSON
         if not request.is_json:
-            logger.warning(" Contenido recibido no es JSON válido")
+            logger.warning("⚠️ Contenido recibido no es JSON válido")
             return jsonify({
                 "status": "error",
                 "message": "Contenido debe ser JSON válido"
@@ -107,12 +107,12 @@ def receive_messages():
         
         # Obtener body del request
         body = request.get_json()
-        logger.info(f" JSON recibido: {mask_sensitive_data(str(body))}")
+        logger.info(f"📨 JSON recibido: {mask_sensitive_data(str(body))}")
         
         # Validar estructura básica del webhook
         validation_result = _validate_webhook_structure(body)
         if not validation_result["valid"]:
-            logger.warning(f" Estructura de webhook inválida: {validation_result['error']}")
+            logger.warning(f"⚠️ Estructura de webhook inválida: {validation_result['error']}")
             return jsonify({
                 "status": "error",
                 "message": validation_result["error"]
@@ -123,7 +123,7 @@ def receive_messages():
         
         # Si no hay mensajes, probablemente es un evento de status
         if not message_info:
-            logger.info(" Webhook sin mensajes (probablemente evento de status)")
+            logger.info("ℹ️ Webhook sin mensajes (probablemente evento de status)")
             return jsonify({
                 "status": "success",
                 "message": "Evento de status procesado"
@@ -132,7 +132,7 @@ def receive_messages():
         # Procesar mensaje con el handler
         _process_message_with_handler(message_info)
         
-        logger.info(" Mensaje procesado correctamente")
+        logger.info("✅ Mensaje procesado correctamente")
         return jsonify({
             "status": "success",
             "message": "Mensaje procesado correctamente"
@@ -141,8 +141,8 @@ def receive_messages():
     except Exception as e:
         # Log completo del error
         error_details = traceback.format_exc()
-        logger.error(f" Error procesando webhook: {str(e)}")
-        logger.error(f" Traceback completo:\n{error_details}")
+        logger.error(f"❌ Error procesando webhook: {str(e)}")
+        logger.error(f"❌ Traceback completo:\n{error_details}")
         
         return jsonify({
             "status": "error",
@@ -200,7 +200,7 @@ def _extract_message_info(body: dict) -> dict:
         # Verificar si hay mensajes
         messages = value.get("messages")
         if not isinstance(messages, list) or len(messages) == 0:
-            logger.info(" No hay mensajes en el webhook")
+            logger.info("📭 No hay mensajes en el webhook")
             return None
         
         # Extraer información del primer mensaje
@@ -215,11 +215,11 @@ def _extract_message_info(body: dict) -> dict:
         clean_number = replace_start(raw_number)
         
         if not validate_phone_number(clean_number):
-            logger.warning(f" Número de teléfono inválido: {mask_sensitive_data(raw_number)}")
+            logger.warning(f"⚠️ Número de teléfono inválido: {mask_sensitive_data(raw_number)}")
         
         # Validar formato del mensaje
         if not validate_whatsapp_message_format(message):
-            logger.warning(" Formato de mensaje no válido")
+            logger.warning("⚠️ Formato de mensaje no válido")
         
         return {
             "raw_message": message,
@@ -231,7 +231,7 @@ def _extract_message_info(body: dict) -> dict:
         }
         
     except Exception as e:
-        logger.error(f" Error extrayendo información del mensaje: {e}")
+        logger.error(f"❌ Error extrayendo información del mensaje: {e}")
         return None
 
 
@@ -261,7 +261,7 @@ def _process_message_with_handler(message_info: dict) -> None:
         )
         
     except Exception as e:
-        logger.error(f" Error en el handler de mensajes: {e}")
+        logger.error(f"❌ Error en el handler de mensajes: {e}")
         # Re-lanzar la excepción para que sea manejada por el endpoint principal
         raise
 
@@ -299,7 +299,7 @@ def health_check():
         return jsonify(health_status), 200
         
     except Exception as e:
-        logger.error(f" Error en health check: {e}")
+        logger.error(f"❌ Error en health check: {e}")
         return jsonify({
             "status": "error",
             "message": str(e)
@@ -326,7 +326,7 @@ def get_stats():
         return jsonify(stats), 200
         
     except Exception as e:
-        logger.error(f" Error obteniendo estadísticas: {e}")
+        logger.error(f"❌ Error obteniendo estadísticas: {e}")
         return jsonify({
             "error": str(e)
         }), 500
@@ -353,7 +353,7 @@ def method_not_allowed(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handler para errores 500."""
-    logger.error(f" Error interno del servidor: {error}")
+    logger.error(f"❌ Error interno del servidor: {error}")
     return jsonify({
         "status": "error",
         "message": "Error interno del servidor"
@@ -363,19 +363,19 @@ def internal_error(error):
 if __name__ == '__main__':
     """
     Punto de entrada principal para desarrollo.
-    En produccion se debe usar un servidor WSGI como Gunicorn.
+    En producción se debe usar un servidor WSGI como Gunicorn.
     """
-    logger.info(" Iniciando servidor Flask en modo desarrollo")
+    logger.info("🚀 Iniciando servidor Flask en modo desarrollo")
     
     # Configuración para desarrollo
     app.run(
         host='0.0.0.0',
         port=5000,
-        debug=False,  # Mantener False en produccion
+        debug=False,  # Mantener False en producción
         threaded=True
     )
 else:
     """
-    Configuración para produccion con WSGI.
+    Configuración para producción con WSGI.
     """
-    logger.info(" Aplicacion Flask cargada para produccion (WSGI)")
+    logger.info("🚀 Aplicación Flask cargada para producción (WSGI)")

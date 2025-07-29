@@ -11,7 +11,7 @@ from services.whatsapp_service import WhatsAppService
 from services.database_service import DatabaseService
 from services.ollama_service import OllamaService
 from services.image_service import ImageService
-from handlers.state_manager import StateManager, UserState
+from handlers.state_manager import StateManager
 from handlers.response_builder import ResponseBuilder
 from utils.validators import validate_order_number
 from utils.helpers import extract_text_from_message
@@ -67,14 +67,6 @@ class MessageHandler:
         
         # Extraer información del mensaje
         context = self._build_message_context(raw_message, number, message_id, name)
-        print(f"📨 Texto recibido: {context.text}")
-        
-        print(f"👤 Número: {context.number}")
-        
-        print(f"🔎 Estado actual: {self.state_manager.get_user_state(context.number)}")
-        print(f"📨 Texto recibido: {context.text}")
-        print(f"👤 Número: {context.number}")
-        print(f"🔎 Estado actual: {self.state_manager.get_user_state(context.number)}")
         
         # Verificar rate limiting
         if self._is_rate_limited(context):
@@ -90,7 +82,6 @@ class MessageHandler:
             
             # Procesar según el tipo de mensaje
             responses = self._route_message(context)
-            print(f"✅ Respuestas generadas: {responses}")
             
             # Enviar respuestas
             self._send_responses(number, responses)
@@ -227,13 +218,13 @@ class MessageHandler:
     def _handle_stateful_message(self, context: MessageContext, state: str) -> List[str]:
         """Maneja mensajes cuando el usuario está en un estado específico."""
         
-        if state == UserState.AWAITING_PART_SEARCH:
+        if state == "awaiting_part_search":
             return self._handle_part_search(context)
         
-        elif state == UserState.AWAITING_STATUS_SEARCH:
+        elif state == "awaiting_status_search":
             return self._handle_status_search(context)
         
-        elif state == UserState.AWAITING_ORDER_NUMBER:
+        elif state == "awaiting_order_number":
             return self._handle_order_search(context)
         
         elif state.startswith("post_"):
@@ -280,26 +271,24 @@ class MessageHandler:
     
     def _handle_part_consultation_start(self, context: MessageContext) -> List[str]:
         """Inicia consulta de piezas."""
-        self.state_manager.set_user_state(context.number, UserState.AWAITING_PART_SEARCH)
+        self.state_manager.set_user_state(context.number, "awaiting_part_search")
         return ["🔍 Escribe el nombre o código de la pieza que deseas consultar."]
     
     def _handle_status_consultation_start(self, context: MessageContext) -> List[str]:
         """Inicia consulta de estatus."""
-        self.state_manager.set_user_state(context.number, UserState.AWAITING_STATUS_SEARCH)
+        self.state_manager.set_user_state(context.number, "awaiting_status_search")
         return ["🛠️ Escribe el nombre o código de la pieza para consultar su estatus."]
     
     def _handle_order_consultation_start(self, context: MessageContext) -> List[str]:
         """Inicia consulta de órdenes."""
-        self.state_manager.set_user_state(context.number, UserState.AWAITING_ORDER_NUMBER)
+        self.state_manager.set_user_state(context.number, "awaiting_order_number")
         return ["📦 Escribe el número de orden que deseas consultar."]
     
     def _handle_part_search(self, context: MessageContext) -> List[str]:
-        print(f"🔍 Búsqueda de pieza: {context.text}")
         """Procesa búsqueda de piezas."""
         parts = self.database.search_parts(context.text)
         
         if not parts:
-       	    print("🧠 Consultando RAG por falta de resultados en BD")
             # Intentar con RAG si no hay resultados
             rag_response = self.ollama.search_with_context(f"pieza {context.text}")
             if rag_response:

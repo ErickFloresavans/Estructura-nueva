@@ -1,0 +1,24 @@
+✅ Modelo cargado: SentenceTransformer(
+  (0): Transformer({'max_seq_length': 256, 'do_lower_case': False}) with Transformer model: BertModel 
+  (1): Pooling({'word_embedding_dimension': 384, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})
+  (2): Normalize()
+)
+✅ Sistema RAG disponible
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+Could not cache non-existence of file. Will ignore error and continue. Error: [Errno 13] Permission denied: '/home/ollama-bot/hf_cache/models--Salesforce--blip-image-captioning-base/.no_exist/82a37760796d32b1411fe092ab5d4e227313294b/processor_config.json'
+Could not cache non-existence of file. Will ignore error and continue. Error: [Errno 13] Permission denied: '/home/ollama-bot/hf_cache/models--Salesforce--blip-image-captioning-base/.no_exist/82a37760796d32b1411fe092ab5d4e227313294b/chat_template.json'
+Could not cache non-existence of file. Will ignore error and continue. Error: [Errno 13] Permission denied: '/home/ollama-bot/hf_cache/models--Salesforce--blip-image-captioning-base/.no_exist/82a37760796d32b1411fe092ab5d4e227313294b/chat_template.jinja'
+Could not cache non-existence of file. Will ignore error and continue. Error: [Errno 13] Permission denied: '/home/ollama-bot/hf_cache/models--Salesforce--blip-image-captioning-base/.no_exist/82a37760796d32b1411fe092ab5d4e227313294b/generation_config.json'
+✅ BLIP utils disponible para procesamiento de imágenes
+📁 Directorio asegurado: static/uploads
+📁 Directorio asegurado: temp/images
+ Flask cargado correctamente desde app.py
+2025-07-24 11:52:20,923 - __main__ - INFO -  WhatsApp Bot iniciado correctamente
+2025-07-24 11:52:20,927 - __main__ - INFO -  Iniciando servidor Flask en modo desarrollo
+ * Serving Flask app 'app'
+ * Debug mode: off
+2025-07-24 11:52:20,931 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://147.182.175.60:5000
+2025-07-24 11:52:20,932 - werkzeug - INFO - [33mPress CTRL+C to quit[0m

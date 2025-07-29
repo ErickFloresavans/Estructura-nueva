@@ -1,0 +1,15 @@
+nohup: ignoring input
+⚠️ Sistema RAG no disponible
+⚠️ BLIP utils no disponible - procesamiento de imágenes deshabilitado
+📁 Directorio asegurado: static/uploads
+📁 Directorio asegurado: temp/images
+ Flask cargado correctamente desde app.py
+2025-07-28 14:06:01,829 - __main__ - INFO -  WhatsApp Bot iniciado correctamente
+2025-07-28 14:06:01,833 - __main__ - INFO -  Iniciando servidor Flask en modo desarrollo
+ * Serving Flask app 'app'
+ * Debug mode: off
+2025-07-28 14:06:01,839 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://147.182.175.60:5000
+2025-07-28 14:06:01,839 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
