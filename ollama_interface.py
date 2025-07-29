@@ -9,7 +9,7 @@ def preguntar_sobre_imagen(descripcion):
     """
     try:
         prompt = f"La imagen fue descrita como: '{descripcion}'. ¿Qué puedes deducir de esto?"
-        response = ollama.chat(model='llama3', messages=[
+        response = ollama.chat(model='llama3.2:3b', messages=[
             {"role": "user", "content": prompt}
         ])
         return response['message']['content']
@@ -41,7 +41,7 @@ def preguntar_a_ollama(texto):
         """
 
         response = ollama.chat(
-            model='llama3',
+            model='llama3.2:3b',
             messages=[{"role": "system", "content": "Eres un experto en SAP que SIEMPRE responde en español de forma completa y útil."}, 
                      {"role": "user", "content": prompt}],
             options={
@@ -104,7 +104,7 @@ def interpretar_mensaje(mensaje_usuario):
         response = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": "llama3",
+                "model": "llama3.2:3b",
                 "prompt": prompt,
                 "stream": False,
                 "options": {

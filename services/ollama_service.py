@@ -30,7 +30,7 @@ class OllamaService:
     """
     
     def __init__(self):
-        self.model_name = "llama3"
+        self.model_name = "llama3.2:3b"
         self.max_response_length = 800
         self.rag_available = RAG_AVAILABLE
         
