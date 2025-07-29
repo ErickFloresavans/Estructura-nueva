@@ -1,1 +1,9 @@
 sett.py
+sett.py
+__pycache__/
+*.log
+*.pid
+*.jsonl
+logs/
+temp/
+*.backup
