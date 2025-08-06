@@ -10,14 +10,14 @@ from typing import List, Dict, Any, Optional
 class ResponseBuilder:
     """
     Constructor centralizado de respuestas para WhatsApp.
-    
+
     Responsabilidades:
     - Generar mensajes de texto estructurados
     - Crear mensajes interactivos (botones, listas)
     - Formatear datos de consultas de manera consistente
     - Mantener el estilo y tono de la marca
     """
-    
+
     def __init__(self):
         self.brand_name = "AVANS"
         self.emoji_map = {
@@ -36,28 +36,28 @@ class ResponseBuilder:
             "brain": "🧠",
             "sparkles": "✨"
         }
-    
-    def build_main_menu(self, title: str = None, options: List[str] = None, 
+
+    def build_main_menu(self, title: str = None, options: List[str] = None,
                        footer: str = None) -> str:
         """
         Construye el menú principal con botones interactivos.
-        
+
         Args:
             title: Título del menú
             options: Lista de opciones para los botones
             footer: Texto del pie de página
-            
+
         Returns:
             JSON string del mensaje interactivo
         """
         default_title = f"Hola, ¿en qué puedo ayudarte? {self.emoji_map['sparkles']}"
         default_options = ["Consultar Piezas", "Ver Estatus", "Consultar Órdenes"]
         default_footer = f"Equipo {self.brand_name}"
-        
+
         title = title or default_title
         options = options or default_options
         footer = footer or default_footer
-        
+
         buttons = []
         for i, option in enumerate(options[:3]):  # WhatsApp permite máximo 3 botones
             buttons.append({
@@ -67,7 +67,7 @@ class ResponseBuilder:
                     "title": option[:20]  # Límite de caracteres para botones
                 }
             })
-        
+
         message = {
             "messaging_product": "whatsapp",
             "recipient_type": "individual",
@@ -79,17 +79,17 @@ class ResponseBuilder:
                 "action": {"buttons": buttons}
             }
         }
-        
+
         return json.dumps(message, ensure_ascii=False)
-    
+
     def build_yes_no_question(self, question: str, context: str = "general") -> str:
         """
         Construye una pregunta con botones Sí/No.
-        
+
         Args:
             question: Pregunta a mostrar
             context: Contexto para identificar la respuesta
-            
+
         Returns:
             JSON string del mensaje interactivo
         """
@@ -115,142 +115,127 @@ class ResponseBuilder:
                 }
             }
         }
-        
+
         return json.dumps(message, ensure_ascii=False)
-    
-    def build_parts_response(self, parts: List[Dict[str, Any]]) -> List[str]:
+
+    def build_orders_response(self, orders: List[Dict[str, Any]]) -> List[str]:
         """
-        Construye respuesta formateada para consulta de piezas.
+        Construye respuesta de órdenes encontradas.
         
         Args:
-            parts: Lista de piezas con su información
+            orders: Lista de órdenes
             
         Returns:
-            Lista de mensajes formateados
+            Lista con las respuestas formateadas
         """
-        if not parts:
-            return [f"{self.emoji_map['warning']} No se encontraron piezas."]
+        if not orders:
+            return ["📦 No se encontraron órdenes."]
         
-        responses = []
+        response = [f"📦 *Órdenes encontradas:* ({len(orders)})"]
         
-        if len(parts) == 1:
-            # Una sola pieza - mostrar detalles completos
-            part = parts[0]
-            message = self._format_single_part(part)
-            responses.append(message)
-        
-        elif len(parts) <= 5:
-            # Pocas piezas - mostrar todas con detalles
-            message = f"{self.emoji_map['search']} *Piezas encontradas:*\n\n"
+        for i, order in enumerate(orders, 1):
+            order_info = f"\n{i}. 📋 *Orden #{order.get('DocNum', 'N/A')}*"
+            order_info += f"\n   👤 Cliente: {order.get('CardName', 'N/A')}"
             
-            for i, part in enumerate(parts):
-                part_info = self._format_part_summary(part, i + 1)
-                message += f"{part_info}\n\n"
-            
-            responses.append(message.strip())
+            if order.get('PaidToDate'):
+                order_info += f"\n   💰 Pagado: ${order['PaidToDate']}"
+            if order.get('OINVToDate'):
+                order_info += f"\n   🧾 Facturado: ${order['OINVToDate']}"
+            if order.get('ODLNToDate'):
+                order_info += f"\n   🚚 Entregado: ${order['ODLNToDate']}"
+                
+            response.append(order_info)
         
-        else:
-            # Muchas piezas - mostrar resumen y sugerir filtro
-            message = f"{self.emoji_map['search']} Encontré {len(parts)} piezas. "
-            message += "Aquí están las primeras 5:\n\n"
-            
-            for i, part in enumerate(parts[:5]):
-                part_info = self._format_part_summary(part, i + 1)
-                message += f"{part_info}\n\n"
-            
-            message += f"💡 *Sugerencia:* Especifica más detalles para resultados más precisos."
-            responses.append(message)
-        
-        return responses
-    
+        return response
+
     def build_status_response(self, parts: List[Dict[str, Any]]) -> List[str]:
         """
         Construye respuesta formateada para consulta de estatus.
-        
+
         Args:
             parts: Lista de piezas con información de estatus
-            
+
         Returns:
             Lista de mensajes formateados
         """
         if not parts:
             return [f"{self.emoji_map['warning']} No se encontraron piezas para consultar estatus."]
-        
+
         responses = []
         message = f"{self.emoji_map['tools']} *Estatus de piezas:*\n\n"
-        
+
         for part in parts:
             status_info = self._format_part_status(part)
             message += f"{status_info}\n\n"
-        
+
         responses.append(message.strip())
         return responses
-    
+
     def build_order_response(self, order_data: Dict[str, Any]) -> List[str]:
         """
         Construye respuesta formateada para consulta de órdenes.
-        
+
         Args:
             order_data: Datos de la orden
-            
+
         Returns:
             Lista de mensajes formateados
         """
         if not order_data:
             return [f"{self.emoji_map['warning']} No se encontró información de la orden."]
-        
+
         customer_name = order_data.get("CardName", "Cliente desconocido")
         paid = order_data.get("PaidToDate", "0%")
         invoiced = order_data.get("OINVToDate", "0%")
         delivered = order_data.get("ODLNToDate", "0%")
-        
+
         message = f"{self.emoji_map['order']} *Información de Orden*\n\n"
         message += f"👤 *Cliente:* {customer_name}\n"
         message += f"{self.emoji_map['money']} *Pagado:* {paid}\n"
         message += f"{self.emoji_map['receipt']} *Facturado:* {invoiced}\n"
         message += f"{self.emoji_map['truck']} *Entregado:* {delivered}"
-        
+
         return [message]
-    
+
     def build_error_message(self, custom_message: str = None) -> str:
         """
         Construye mensaje de error estándar.
-        
+
         Args:
             custom_message: Mensaje personalizado (opcional)
-            
+
         Returns:
             Mensaje de error formateado
         """
         if custom_message:
             return f"{self.emoji_map['error']} {custom_message}"
-        
+
         return (f"{self.emoji_map['error']} Ocurrió un error procesando tu consulta. "
                 f"Escribe *hola* para volver al menú principal.")
-    
+
     def build_timeout_message(self) -> str:
         """
         Construye mensaje de timeout de sesión.
-        
+
         Returns:
             Mensaje de timeout formateado
         """
         return (f"{self.emoji_map['info']} Tu sesión ha expirado por inactividad. "
                 f"Escribe *hola* para comenzar de nuevo.")
-    
+
     def build_processing_message(self) -> str:
         """
         Construye mensaje de procesamiento.
-        
+
         Returns:
             Mensaje de procesamiento
         """
         return f"{self.emoji_map['robot']} Procesando tu consulta, un momento por favor..."
-    
+
     def build_help_message(self) -> str:
         """
         Construye mensaje de ayuda con comandos disponibles.
-        
+
         Returns:
             Mensaje de ayuda completo
         """
@@ -261,14 +246,14 @@ class ResponseBuilder:
         message += f"{self.emoji_map['brain']} *memoria: [texto]* - Guardar conocimiento\n\n"
         message += f"💡 También puedes hacer preguntas libres sobre SAP y {self.brand_name}.\n\n"
         message += f"Escribe *hola* para volver al menú principal."
-        
+
         return message
-    
+
     def _format_single_part(self, part: Dict[str, Any]) -> str:
         """Formatea una sola pieza con detalles completos."""
         message = f"{self.emoji_map['package']} *{part.get('ItemName', 'Sin nombre')}*\n"
         message += f"🔢 *Código:* `{part.get('ItemCode', 'Sin código')}`\n"
-        
+
         # Agregar disponibilidad si existe
         availability = part.get('availability', [])
         if availability:
@@ -279,28 +264,28 @@ class ResponseBuilder:
                 message += f"• {warehouse}: {quantity} unidades\n"
         else:
             message += f"\n{self.emoji_map['warning']} Sin stock disponible\n"
-        
+
         return message.strip()
-    
+
     def _format_part_summary(self, part: Dict[str, Any], index: int) -> str:
         """Formatea un resumen de pieza para listas."""
         name = part.get('ItemName', 'Sin nombre')
         code = part.get('ItemCode', 'Sin código')
-        
+
         # Truncar nombre si es muy largo
         if len(name) > 30:
             name = name[:27] + "..."
-        
+
         return f"{index}. *{name}* (`{code}`)"
-    
+
     def _format_part_status(self, part: Dict[str, Any]) -> str:
         """Formatea información de estatus de una pieza."""
         name = part.get('ItemName', 'Sin nombre')
         code = part.get('ItemCode', 'Sin código')
-        
+
         message = f"{self.emoji_map['package']} *{name}*\n"
         message += f"🔢 *Código:* `{code}`\n"
-        
+
         # Información de estatus
         status_info = part.get('status', {})
         if status_info:
@@ -310,17 +295,17 @@ class ResponseBuilder:
             message += f"🕐 *Actualizado:* {updated}"
         else:
             message += f"{self.emoji_map['warning']} Sin información de estatus"
-        
+
         return message
-    
+
     def format_ai_response(self, response: str, source: str = "IA") -> str:
         """
         Formatea una respuesta de IA con el estilo de la marca.
-        
+
         Args:
             response: Respuesta generada por IA
             source: Fuente de la respuesta (IA, BD, etc.)
-            
+
         Returns:
             Respuesta formateada
         """
@@ -330,5 +315,5 @@ class ResponseBuilder:
             prefix = f"{self.emoji_map['search']} *Base de Datos:*\n\n"
         else:
             prefix = f"{self.emoji_map['info']} *{source}:*\n\n"
-        
+
         return f"{prefix}{response}"

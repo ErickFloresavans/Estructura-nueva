@@ -310,7 +310,7 @@ class MessageHandler:
             return [response]
 
         # Construir respuesta con disponibilidad
-        response = self.response_builder.build_parts_response(parts)
+        response = self.response_builder.build_status_response(parts)
         response.append(self.response_builder.build_yes_no_question(
             "¿Consultar otra pieza?", "postconsulta"
         ))
@@ -386,7 +386,7 @@ class MessageHandler:
             print(f"🔧 Piezas encontradas: {len(parts) if parts else 0}")
             
             if parts:
-                response = self.response_builder.build_parts_response(parts)
+                response = self.response_builder.build_status_response(parts)
                 return response
             
             # 3. Intentar búsqueda de órdenes por cliente si parece un nombre
