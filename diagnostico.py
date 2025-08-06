@@ -1,42 +1,24 @@
-import json
 import sys
 import traceback
+from consultas_automaticas import buscar_piezas_auto  # 👈 reemplaza por el nombre real del archivo
 
-# Simula la variable que te da error
-# 👇 Sustituye esta línea por tu variable real
-response = '{"data": {"nombre": "Sergio"}}'  # ← puede ser str o dict, edítalo tú
-
-print("✅ Tipo detectado:")
-print(type(response))
-
-print("\n📦 Contenido:")
-print(response)
-
-# Intenta convertir si es string JSON
-if isinstance(response, str):
+def ejecutar_diagnostico(termino):
     try:
-        print("\n🔄 Intentando convertir con json.loads...")
-        response = json.loads(response)
-        print("✅ Conversión exitosa. Nuevo tipo:", type(response))
+        print(f"🔍 Buscando piezas con el término: '{termino}'...")
+        resultados = buscar_piezas_auto(termino)
+
+        if resultados:
+            print(f"✅ Se encontraron {len(resultados)} resultados:\n")
+            for row in resultados:
+                print(f"🧩 ID: {row['id']} | Nombre: {row['ItemName']} | Código: {row['ItemCode']}")
+
+        else:
+            print("⚠️ No se encontraron coincidencias.")
+
     except Exception as e:
-        print("❌ Error al hacer json.loads:")
+        print("❌ Error durante la búsqueda:")
         traceback.print_exc()
-        sys.exit(1)
 
-# Prueba de acceso por clave
-try:
-    print("\n🔍 Accediendo a clave 'data'...")
-    data = response.get("data")
-    print("✅ data:", data)
-except Exception as e:
-    print("❌ Error accediendo a .get('data'):")
-    traceback.print_exc()
-
-# Prueba de acceso encadenado
-try:
-    print("\n📥 Accediendo a data['nombre']...")
-    nombre = data["nombre"]
-    print("✅ nombre:", nombre)
-except Exception as e:
-    print("❌ Error accediendo a data['nombre']:")
-    traceback.print_exc()
+if __name__ == "__main__":
+    termino = sys.argv[1] if len(sys.argv) > 1 else "motor"
+    ejecutar_diagnostico(termino)

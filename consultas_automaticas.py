@@ -123,6 +123,7 @@ def consulta_automatica_pieza(termino):
     """
     try:
         resultados = buscar_piezas_auto(termino)
+        print(f"🔎 Resultados obtenidos para '{termino}': {resultados}")
         if not resultados:
             return f"❌ No encontré ninguna pieza con '{termino}' en el sistema."
         
