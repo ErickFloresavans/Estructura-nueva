@@ -121,31 +121,31 @@ class ResponseBuilder:
     def build_orders_response(self, orders: List[Dict[str, Any]]) -> List[str]:
         """
         Construye respuesta de órdenes encontradas.
-        
+
         Args:
             orders: Lista de órdenes
-            
+
         Returns:
             Lista con las respuestas formateadas
         """
         if not orders:
             return ["📦 No se encontraron órdenes."]
-        
+
         response = [f"📦 *Órdenes encontradas:* ({len(orders)})"]
-        
+
         for i, order in enumerate(orders, 1):
             order_info = f"\n{i}. 📋 *Orden #{order.get('DocNum', 'N/A')}*"
             order_info += f"\n   👤 Cliente: {order.get('CardName', 'N/A')}"
-            
+
             if order.get('PaidToDate'):
                 order_info += f"\n   💰 Pagado: ${order['PaidToDate']}"
             if order.get('OINVToDate'):
                 order_info += f"\n   🧾 Facturado: ${order['OINVToDate']}"
             if order.get('ODLNToDate'):
                 order_info += f"\n   🚚 Entregado: ${order['ODLNToDate']}"
-                
+
             response.append(order_info)
-        
+
         return response
 
     def build_status_response(self, parts: List[Dict[str, Any]]) -> List[str]:
@@ -282,10 +282,28 @@ class ResponseBuilder:
         """Formatea información de estatus de una pieza."""
         name = part.get('ItemName', 'Sin nombre')
         code = part.get('ItemCode', 'Sin código')
-
+        
         message = f"{self.emoji_map['package']} *{name}*\n"
         message += f"🔢 *Código:* `{code}`\n"
-
+        
+        # Información de disponibilidad (cantidad y bodega)
+        availability = part.get('availability', [])
+        if availability:
+            message += f"📦 *Disponibilidad:*\n"
+            for avail in availability:
+                bodega = avail.get('bodega', 'N/A')
+                cantidad = avail.get('cantidad', 0)
+                message += f"   • {bodega}: {cantidad} unidades\n"
+        else:
+            # Información básica de la consulta principal
+            on_hand = part.get('OnHand', 0)
+            warehouse = part.get('DfltWH', 'N/A')
+            if on_hand is not None:
+                message += f"📦 *Disponible:* {on_hand} unidades\n"
+                message += f"🏪 *Bodega:* {warehouse}\n"
+            else:
+                message += f"📦 *Disponibilidad:* Sin información\n"
+        
         # Información de estatus
         status_info = part.get('status', {})
         if status_info:
@@ -294,8 +312,17 @@ class ResponseBuilder:
             message += f"📊 *Estatus:* {stage}\n"
             message += f"🕐 *Actualizado:* {updated}"
         else:
-            message += f"{self.emoji_map['warning']} Sin información de estatus"
-
+            # Usar información básica si no hay status detallado
+            is_commited = part.get('IsCommited', 'N/A')
+            updated = part.get('Updated', 'N/A')
+            if is_commited is not None:
+                status_text = "Disponible" if is_commited else "En proceso"
+                message += f"📊 *Estatus:* {status_text}\n"
+            if updated and updated != 'N/A':
+                message += f"🕐 *Actualizado:* {updated}"
+            else:
+                message += f"{self.emoji_map['warning']} Sin información de estatus"
+        
         return message
 
     def format_ai_response(self, response: str, source: str = "IA") -> str:
