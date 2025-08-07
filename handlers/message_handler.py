@@ -382,7 +382,7 @@ class MessageHandler:
                 return [f"🤖 *Resultado de base de datos:*\n\n{db_result}"]
             
             # 2. Intentar búsqueda directa de piezas si no hay resultado automático
-            parts = self.database.search_parts(context.text, limit=3)
+            parts = self.database.search_parts(context.text, limit=10)
             print(f"🔧 Piezas encontradas: {len(parts) if parts else 0}")
             
             if parts:
